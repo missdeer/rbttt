@@ -102,36 +102,54 @@ func UnblockUser(id int64, screen_name string) error {
 }
 
 func Authorize() {
-
 	config := &oauth1a.ClientConfig{
 		ConsumerKey:    "5AD7pjFonMS6JIevrBz1Q",
 		ConsumerSecret: "wKdiQ2kPZMo2Q1uK71qv4KkW7L8NyLkbubTfh87ZU",
 		CallbackURL:    "oob",
 	}
-	service := &oauth1a.Service{
-		RequestURL:   "https://api.twitter.com/oauth/request_token",
-		AuthorizeURL: "https://api.twitter.com/oauth/authorize",
-		AccessURL:    "https://api.twitter.com/oauth/access_token",
-		ClientConfig: config,
-		Signer:       new(oauth1a.HmacSha1Signer),
-	}
+	// read access token key & access token secret from file
+	credentials, err := ioutil.ReadFile("CREDENTIALS")
+	if err == nil {
+		lines := strings.Split(string(credentials), "\n")
 
-	httpClient := new(http.Client)
-	userConfig := &oauth1a.UserConfig{}
-	userConfig.GetRequestToken(service, httpClient)
-	u, _ := userConfig.GetAuthorizeURL(service)
-	fmt.Println("use a web browser to open", u)
-	token, _ := userConfig.GetToken()
-	var verifier string
-	fmt.Printf("input PIN code: ")
-	fmt.Scanf("%s", &verifier)
-	if err := userConfig.GetAccessToken(token, verifier, service, httpClient); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+		// load access token key & access token secret
+		auth := oauth1a.NewAuthorizedConfig(lines[0], lines[1])
+		client = twittergo.NewClient(config, auth)
+	} else {
+		service := &oauth1a.Service{
+			RequestURL:   "https://api.twitter.com/oauth/request_token",
+			AuthorizeURL: "https://api.twitter.com/oauth/authorize",
+			AccessURL:    "https://api.twitter.com/oauth/access_token",
+			ClientConfig: config,
+			Signer:       new(oauth1a.HmacSha1Signer),
+		}
 
-	auth := oauth1a.NewAuthorizedConfig(userConfig.AccessTokenKey, userConfig.AccessTokenSecret)
-	client = twittergo.NewClient(config, auth)
+		httpClient := new(http.Client)
+		userConfig := &oauth1a.UserConfig{}
+		userConfig.GetRequestToken(service, httpClient)
+		u, _ := userConfig.GetAuthorizeURL(service)
+		fmt.Println("use a web browser to open", u)
+		token, _ := userConfig.GetToken()
+		var verifier string
+		fmt.Printf("input PIN code: ")
+		fmt.Scanf("%s", &verifier)
+		if err := userConfig.GetAccessToken(token, verifier, service, httpClient); err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		// save access token key & access token secret to file
+		f, err := os.Open("CREDENTIALS")
+		if err == nil {
+			f.WriteString(userConfig.AccessTokenKey)
+			f.WriteString(userConfig.AccessTokenSecret)
+			f.Close()
+			fmt.Println("save auth info into CREDENTIALS")
+		}
+
+		// load access token key & access token secret
+		auth := oauth1a.NewAuthorizedConfig(userConfig.AccessTokenKey, userConfig.AccessTokenSecret)
+		client = twittergo.NewClient(config, auth)
+	}
 
 	req, err = http.NewRequest("GET", "/1.1/account/verify_credentials.json", nil)
 	if err != nil {
@@ -156,40 +174,92 @@ func Authorize() {
 	fmt.Printf("ScreenName: %v\n", user.ScreenName())
 }
 
-func GetFollowersList() (*UserCollection, error) {
-	/// get followers list
-	query := url.Values{}
-	query.Set("screen_name", user.ScreenName())
-	query.Set("user_id", fmt.Sprintf("%d", user.Id()))
-	query.Set("cursor", "-1")
-	query.Set("count", "2000")
-	req, err = http.NewRequest("GET", fmt.Sprintf("/1.1/followers/list.json?%v", query.Encode()), nil)
-	if err != nil {
-		fmt.Printf("Could not parse request: %v\n", err)
-		return nil, err
-	}
-
-	resp, err = client.SendRequest(req)
-	if err != nil {
-		fmt.Printf("Could not send request: %v\n", err)
-		return nil, err
-	}
-
-	users := new(UserCollection)
-
-	if b, err := ReadBody(resp); err != nil {
-		return nil, err
-	} else {
-		err = json.Unmarshal(b, users)
-		if err == io.EOF {
-			err = nil
-		}
+func GetFriendsList() ([]UserProfile, error) {
+	var cursor int64 = -1
+	var users []UserProfile
+	for {
+		query := url.Values{}
+		query.Set("screen_name", user.ScreenName())
+		query.Set("user_id", fmt.Sprintf("%d", user.Id()))
+		query.Set("cursor", fmt.Sprintf("%d", cursor))
+		query.Set("count", "2000")
+		req, err = http.NewRequest("GET", fmt.Sprintf("/1.1/friends/list.json?%v", query.Encode()), nil)
 		if err != nil {
-			fmt.Printf("Problem parsing followers response: %v\n", err)
+			fmt.Printf("Could not parse request: %v\n", err)
 			return nil, err
 		}
-	}
 
+		resp, err = client.SendRequest(req)
+		if err != nil {
+			fmt.Printf("Could not send request: %v\n", err)
+			return nil, err
+		}
+		userColl := new(UserCollection)
+
+		if b, err := ReadBody(resp); err != nil {
+			return nil, err
+		} else {
+			err = json.Unmarshal(b, userColl)
+			if err == io.EOF {
+				err = nil
+			}
+			if err != nil {
+				fmt.Printf("Problem parsing friends response: %v\n", err)
+				return nil, err
+			}
+		}
+
+		if len(userColl.Users) < 1 {
+			break
+		}
+		users = append(users, userColl.Users...)
+		cursor = userColl.NextCursor
+	}
+	return users, nil
+}
+
+func GetFollowersList() ([]UserProfile, error) {
+	/// get followers list
+	var cursor int64 = -1
+	var users []UserProfile
+	for {
+		query := url.Values{}
+		query.Set("screen_name", user.ScreenName())
+		query.Set("user_id", fmt.Sprintf("%d", user.Id()))
+		query.Set("cursor", fmt.Sprintf("%d", cursor))
+		query.Set("count", "2000")
+		req, err = http.NewRequest("GET", fmt.Sprintf("/1.1/followers/list.json?%v", query.Encode()), nil)
+		if err != nil {
+			fmt.Printf("Could not parse request: %v\n", err)
+			return nil, err
+		}
+
+		resp, err = client.SendRequest(req)
+		if err != nil {
+			fmt.Printf("Could not send request: %v\n", err)
+			return nil, err
+		}
+		userColl := new(UserCollection)
+
+		if b, err := ReadBody(resp); err != nil {
+			return nil, err
+		} else {
+			err = json.Unmarshal(b, userColl)
+			if err == io.EOF {
+				err = nil
+			}
+			if err != nil {
+				fmt.Printf("Problem parsing followers response: %v\n", err)
+				return nil, err
+			}
+		}
+
+		if len(userColl.Users) < 1 {
+			break
+		}
+		users = append(users, userColl.Users...)
+		cursor = userColl.NextCursor
+	}
 	return users, nil
 }
 
@@ -199,15 +269,20 @@ func BlockUnexpectedUsers() {
 		os.Exit(1)
 	}
 	var i int = 0
-	for _, v := range users.Users {
+	for _, v := range users {
 		if v.DefaultProfileImage == true || v.StatusesCount == 0 {
 			i++
-			BlockUser(v.Id, v.ScreenName)
-			fmt.Printf("id: %v, screen name: %s, name: %s, profile image url: %s, default image: %v, default profile: %v has been blocked\n",
-				v.Id, v.ScreenName, v.Name, v.ProfileImageUrl, v.DefaultProfileImage, v.DefaultProfile)
+		try_block:
+			if err = BlockUser(v.Id, v.ScreenName); err == nil {
+				fmt.Printf("id: %v, screen name: %s, name: %s, profile image url: %s, default image: %v, default profile: %v, statuses count: %d has been blocked\n",
+					v.Id, v.ScreenName, v.Name, v.ProfileImageUrl, v.DefaultProfileImage, v.DefaultProfile, v.StatusesCount)
+			} else {
+				time.Sleep(10 * time.Second)
+				goto try_block
+			}
 		}
 	}
-	fmt.Printf("blocked %d followers who are using default profile image\n", i)
+	fmt.Printf("blocked %d followers who are using default profile image or have 0 tweet posted\n", i)
 }
 
 func ClearBlockList() {
@@ -250,9 +325,14 @@ func ClearBlockList() {
 		}
 
 		for _, v := range users.Users {
-			UnblockUser(v.Id, v.ScreenName)
-			fmt.Printf("id: %v, screen name: %s, name: %s, profile image url: %s, default image: %v, default profile: %v has been unblocked\n",
-				v.Id, v.ScreenName, v.Name, v.ProfileImageUrl, v.DefaultProfileImage, v.DefaultProfile)
+		try_unblock:
+			if err = UnblockUser(v.Id, v.ScreenName); err == nil {
+				fmt.Printf("id: %v, screen name: %s, name: %s, profile image url: %s, default image: %v, default profile: %v has been unblocked\n",
+					v.Id, v.ScreenName, v.Name, v.ProfileImageUrl, v.DefaultProfileImage, v.DefaultProfile)
+			} else {
+				time.Sleep(10 * time.Second)
+				goto try_unblock
+			}
 			time.Sleep(5 * time.Second)
 		}
 		i += len(users.Users)
