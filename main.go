@@ -108,7 +108,7 @@ func Authorize() {
 		CallbackURL:    "oob",
 	}
 	// read access token key & access token secret from file
-	credentials, err := ioutil.ReadFile("CREDENTIALS")
+	credentials, err := ioutil.ReadFile(".CREDENTIALS")
 	if err == nil {
 		lines := strings.Split(string(credentials), "\n")
 
@@ -138,12 +138,13 @@ func Authorize() {
 			os.Exit(1)
 		}
 		// save access token key & access token secret to file
-		f, err := os.Open("CREDENTIALS")
+		f, err := os.OpenFile(".CREDENTIALS", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
 		if err == nil {
 			f.WriteString(userConfig.AccessTokenKey)
+			f.WriteString("\n")
 			f.WriteString(userConfig.AccessTokenSecret)
 			f.Close()
-			fmt.Println("save auth info into CREDENTIALS")
+			fmt.Println("save auth info into .CREDENTIALS")
 		}
 
 		// load access token key & access token secret

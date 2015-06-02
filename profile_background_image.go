@@ -2,18 +2,32 @@ package main
 
 import (
 	"bytes"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"github.com/disintegration/imaging"
+	"github.com/kurrik/twittergo"
 	"image"
 	"image/color"
 	_ "image/gif"
 	_ "image/jpeg"
 	_ "image/png"
+	"io"
 	"io/ioutil"
+	"mime/multipart"
 	"net/http"
 	"os"
 	"time"
 )
+
+const (
+	profileBackgroundImage = "profileBackgroundImage.jpg"
+)
+
+type Media struct {
+	MediaId    int64  `json:"media_id"`
+	MediaIdStr string `json:"media_id_str"`
+}
 
 func Download(requestUrl string) ([]byte, error) {
 	client := &http.Client{
@@ -47,7 +61,32 @@ func Download(requestUrl string) ([]byte, error) {
 	return body, nil
 }
 
-func UpdateProfileBackgroundImage() {
+func GetBody() (body io.ReadWriter, header string, err error) {
+	var (
+		mp     *multipart.Writer
+		media  []byte
+		writer io.Writer
+	)
+	body = bytes.NewBufferString("")
+	mp = multipart.NewWriter(body)
+	media, err = ioutil.ReadFile(profileBackgroundImage)
+	if err != nil {
+		return
+	}
+
+	mp.WriteField("media_data", base64.StdEncoding.EncodeToString(media))
+
+	writer, err = mp.CreateFormFile("media[]", profileBackgroundImage)
+	if err != nil {
+		return
+	}
+	writer.Write(media)
+	header = fmt.Sprintf("multipart/form-data;boundary=%v", mp.Boundary())
+	mp.Close()
+	return
+}
+
+func GenerateProfileBackgroundImage() {
 	// first download all friends profile images
 	users, err := GetFriendsList()
 	if err != nil {
@@ -55,13 +94,7 @@ func UpdateProfileBackgroundImage() {
 	}
 
 	const width = 42
-	var height = len(users) / width
-	if height < 20 {
-		height = 20
-	}
-	if height > 30 {
-		height = 30
-	}
+	const height = 30
 	// create a new blank image
 	dst := imaging.New(width*48, height*48, color.NRGBA{0, 0, 0, 0})
 	// input files
@@ -89,9 +122,70 @@ gen_background_image:
 	}
 
 	// save the combined image to file
-	if err := imaging.Save(dst, "dst.png"); err != nil {
+	if err := imaging.Save(dst, profileBackgroundImage); err != nil {
 		fmt.Println("saving the final image file failed", err)
-	} else {
-		fmt.Println("got dst.png")
+		os.Exit(1)
 	}
+
+	fmt.Println("got", profileBackgroundImage)
+}
+
+func UpdateProfileBackgroundImage() {
+	GenerateProfileBackgroundImage()
+
+	// upload to twitter
+	body, header, err := GetBody()
+	if err != nil {
+		fmt.Printf("Problem loading body: %v\n", err)
+		os.Exit(1)
+	}
+
+	req, err = http.NewRequest("POST", "https://upload.twitter.com/1.1/media/upload.json", body)
+	if err != nil {
+		fmt.Printf("Could not parse uploading media request: %v\n", err)
+		os.Exit(1)
+	}
+	req.Header.Set("Content-Type", header)
+
+	resp, err = client.SendRequest(req)
+	if err != nil {
+		fmt.Printf("Could not send uploading media request: %v\n", err)
+		os.Exit(1)
+	}
+
+	media := new(Media)
+	b, err := ReadBody(resp)
+	if err != nil {
+		fmt.Println("reading body failed", err)
+		os.Exit(1)
+	}
+
+	err = json.Unmarshal(b, media)
+	if err == io.EOF {
+		err = nil
+	}
+	if err != nil {
+		fmt.Printf("Problem parsing media response: %v\n", err)
+		os.Exit(1)
+	}
+
+	requestUrl := fmt.Sprintf(`/1.1/account/update_profile_background_image.json?skip_status=1&tile=1&media_id=%d`, media.MediaId)
+	req, err = http.NewRequest("POST", requestUrl, nil)
+	if err != nil {
+		fmt.Printf("Could not parse updating profile background image request: %v\n", err)
+		os.Exit(1)
+	}
+
+	resp, err = client.SendRequest(req)
+	if err != nil {
+		fmt.Printf("Could not send updating profile background image request: %v\n", err)
+		os.Exit(1)
+	} else {
+		if resp.StatusCode == twittergo.STATUS_OK {
+			fmt.Println("profile background image updated")
+		} else {
+			fmt.Println(resp)
+		}
+	}
+
 }
