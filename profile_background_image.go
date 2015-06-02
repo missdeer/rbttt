@@ -126,8 +126,6 @@ gen_background_image:
 		fmt.Println("saving the final image file failed", err)
 		os.Exit(1)
 	}
-
-	fmt.Println("got", profileBackgroundImage)
 }
 
 func UpdateProfileBackgroundImage() {

@@ -8,8 +8,9 @@ Features:
 - block followers who have 0 tweet posted
 - clear block list
 - update profile background image which is joined by friends' profile images
+- action by command line arguments
 
 TODO:
 ----
 
-- action by command line arguments
+- more useful features

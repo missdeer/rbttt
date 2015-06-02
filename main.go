@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/kurrik/oauth1a"
 	"github.com/kurrik/twittergo"
+	flag "github.com/ogier/pflag"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -346,14 +347,35 @@ func ClearBlockList() {
 	fmt.Printf("unblocked %d users\n", i)
 }
 
+func init() {
+}
+
 func main() {
 	fmt.Println("rbttt, the small twitter helper tool.")
 
+	unblock := false
+	block := false
+	background := false
+	all := false
+
+	flag.BoolVarP(&unblock, "unblock", "u", false, "clear block list")
+	flag.BoolVarP(&block, "block", "b", false, "block followers who are using default profile image or have 0 tweet so far")
+	flag.BoolVarP(&background, "backgroud", "g", false, "update profile background image with friends' avantar wall")
+	flag.BoolVarP(&all, "all", "a", false, "run all actions")
+
+	flag.Parse()
+
 	Authorize()
 
-	BlockUnexpectedUsers()
+	if all == true || block == true {
+		BlockUnexpectedUsers()
+	}
 
-	ClearBlockList()
+	if all == true || unblock == true {
+		ClearBlockList()
+	}
 
-	UpdateProfileBackgroundImage()
+	if all == true || background == true {
+		UpdateProfileBackgroundImage()
+	}
 }
