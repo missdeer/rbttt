@@ -102,7 +102,7 @@ func UnblockUser(id int64, screen_name string) error {
 	return nil
 }
 
-func Authorize() {
+func Authorize(force_auth bool) {
 	config := &oauth1a.ClientConfig{
 		ConsumerKey:    "5AD7pjFonMS6JIevrBz1Q",
 		ConsumerSecret: "wKdiQ2kPZMo2Q1uK71qv4KkW7L8NyLkbubTfh87ZU",
@@ -110,7 +110,7 @@ func Authorize() {
 	}
 	// read access token key & access token secret from file
 	credentials, err := ioutil.ReadFile(".CREDENTIALS")
-	if err == nil {
+	if err == nil && force_auth == false {
 		lines := strings.Split(string(credentials), "\n")
 
 		// load access token key & access token secret
@@ -357,15 +357,17 @@ func main() {
 	block := false
 	background := false
 	all := false
+	reauth := false
 
 	flag.BoolVarP(&unblock, "unblock", "u", false, "clear block list")
 	flag.BoolVarP(&block, "block", "b", false, "block followers who are using default profile image or have 0 tweet so far")
 	flag.BoolVarP(&background, "backgroud", "g", false, "update profile background image with friends' avantar wall")
 	flag.BoolVarP(&all, "all", "a", false, "run all actions")
+	flag.BoolVarP(&reauth, "reauth", "r", false, "re-authenticate current credential")
 
 	flag.Parse()
 
-	Authorize()
+	Authorize(reauth)
 
 	if all == true || block == true {
 		BlockUnexpectedUsers()
