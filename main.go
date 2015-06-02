@@ -13,7 +13,6 @@ import (
 	"net/url"
 	"os"
 	"strings"
-	"time"
 )
 
 var (
@@ -58,48 +57,6 @@ func ReadBody(r *twittergo.APIResponse) (b []byte, err error) {
 	}
 	b, err = ioutil.ReadAll(reader)
 	return
-}
-
-func BlockUser(id int64, screen_name string) error {
-	query := url.Values{}
-	query.Set("screen_name", screen_name)
-	query.Set("user_id", fmt.Sprintf("%d", id))
-	query.Set("skip_status ", "true")
-
-	req, err = http.NewRequest("POST", fmt.Sprintf("/1.1/blocks/create.json?%v", query.Encode()), nil)
-	if err != nil {
-		fmt.Printf("Could not parse block request: %v\n", err)
-		return err
-	}
-
-	resp, err = client.SendRequest(req)
-	if err != nil {
-		fmt.Printf("Could not send block request: %v\n", err)
-		return err
-	}
-
-	return nil
-}
-
-func UnblockUser(id int64, screen_name string) error {
-	query := url.Values{}
-	query.Set("screen_name", screen_name)
-	query.Set("user_id", fmt.Sprintf("%d", id))
-	query.Set("skip_status ", "true")
-
-	req, err = http.NewRequest("POST", fmt.Sprintf("/1.1/blocks/destroy.json?%v", query.Encode()), nil)
-	if err != nil {
-		fmt.Printf("Could not parse unblock request: %v\n", err)
-		return err
-	}
-
-	resp, err = client.SendRequest(req)
-	if err != nil {
-		fmt.Printf("Could not send unblock request: %v\n", err)
-		return err
-	}
-
-	return nil
 }
 
 func Authorize(force_auth bool) {
@@ -263,91 +220,6 @@ func GetFollowersList() ([]UserProfile, error) {
 		cursor = userColl.NextCursor
 	}
 	return users, nil
-}
-
-func BlockUnexpectedUsers() {
-	users, err := GetFollowersList()
-	if err != nil {
-		os.Exit(1)
-	}
-	var i int = 0
-	for _, v := range users {
-		if v.DefaultProfileImage == true || v.StatusesCount == 0 {
-			i++
-		try_block:
-			if err = BlockUser(v.Id, v.ScreenName); err == nil {
-				fmt.Printf("id: %v, screen name: %s, name: %s, profile image url: %s, default image: %v, default profile: %v, statuses count: %d has been blocked\n",
-					v.Id, v.ScreenName, v.Name, v.ProfileImageUrl, v.DefaultProfileImage, v.DefaultProfile, v.StatusesCount)
-			} else {
-				time.Sleep(10 * time.Second)
-				goto try_block
-			}
-		}
-	}
-	fmt.Printf("blocked %d followers who are using default profile image or have 0 tweet posted\n", i)
-}
-
-func ClearBlockList() {
-	/// get block list
-	var cursor int64 = -1
-	var i int = 0
-	for {
-		query := url.Values{}
-		query.Set("cursor", fmt.Sprintf("%d", cursor))
-		query.Set("skip_status", "true")
-		req, err = http.NewRequest("GET", fmt.Sprintf("/1.1/blocks/list.json?%v", query.Encode()), nil)
-		if err != nil {
-			fmt.Printf("Could not parse block list request: %v\n", err)
-			time.Sleep(5 * time.Second)
-			continue
-		}
-
-		resp, err = client.SendRequest(req)
-		if err != nil {
-			fmt.Printf("Could not send block list request: %v\n", err)
-			time.Sleep(5 * time.Second)
-			continue
-		}
-
-		users := new(UserCollection)
-
-		if b, err := ReadBody(resp); err != nil {
-			time.Sleep(5 * time.Second)
-			continue
-		} else {
-			err = json.Unmarshal(b, users)
-			if err == io.EOF {
-				err = nil
-			}
-			if err != nil {
-				fmt.Printf("Problem parsing block list response: %v\n", err)
-				time.Sleep(5 * time.Second)
-				continue
-			}
-		}
-
-		for _, v := range users.Users {
-		try_unblock:
-			if err = UnblockUser(v.Id, v.ScreenName); err == nil {
-				fmt.Printf("id: %v, screen name: %s, name: %s, profile image url: %s, default image: %v, default profile: %v has been unblocked\n",
-					v.Id, v.ScreenName, v.Name, v.ProfileImageUrl, v.DefaultProfileImage, v.DefaultProfile)
-			} else {
-				time.Sleep(10 * time.Second)
-				goto try_unblock
-			}
-			time.Sleep(5 * time.Second)
-		}
-		i += len(users.Users)
-		if len(users.Users) < 1 {
-			break
-		}
-		cursor = users.NextCursor
-		time.Sleep(30 * time.Second)
-	}
-	fmt.Printf("unblocked %d users\n", i)
-}
-
-func init() {
 }
 
 func main() {
