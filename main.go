@@ -156,8 +156,7 @@ func Authorize() {
 	fmt.Printf("ScreenName: %v\n", user.ScreenName())
 }
 
-func BlockUnexpectedUsers() {
-
+func GetFollowersList() (*UserCollection, error) {
 	/// get followers list
 	query := url.Values{}
 	query.Set("screen_name", user.ScreenName())
@@ -167,19 +166,19 @@ func BlockUnexpectedUsers() {
 	req, err = http.NewRequest("GET", fmt.Sprintf("/1.1/followers/list.json?%v", query.Encode()), nil)
 	if err != nil {
 		fmt.Printf("Could not parse request: %v\n", err)
-		os.Exit(1)
+		return nil, err
 	}
 
 	resp, err = client.SendRequest(req)
 	if err != nil {
 		fmt.Printf("Could not send request: %v\n", err)
-		os.Exit(1)
+		return nil, err
 	}
 
 	users := new(UserCollection)
 
 	if b, err := ReadBody(resp); err != nil {
-		os.Exit(1)
+		return nil, err
 	} else {
 		err = json.Unmarshal(b, users)
 		if err == io.EOF {
@@ -187,10 +186,18 @@ func BlockUnexpectedUsers() {
 		}
 		if err != nil {
 			fmt.Printf("Problem parsing followers response: %v\n", err)
-			os.Exit(1)
+			return nil, err
 		}
 	}
 
+	return users, nil
+}
+
+func BlockUnexpectedUsers() {
+	users, err := GetFollowersList()
+	if err != nil {
+		os.Exit(1)
+	}
 	var i int = 0
 	for _, v := range users.Users {
 		if v.DefaultProfileImage == true || v.StatusesCount == 0 {
@@ -266,4 +273,6 @@ func main() {
 	BlockUnexpectedUsers()
 
 	ClearBlockList()
+
+	UpdateProfileBackgroundImage()
 }

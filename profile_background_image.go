@@ -2,10 +2,28 @@ package main
 
 import (
 	"github.com/disintegration/imaging"
+	"image"
+	"image/color"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
+	"os"
 )
+
+func Download(u string) error {
+	return nil
+}
 
 func UpdateProfileBackgroundImage() {
 	// first download all friends profile images
+	users, err := GetFollowersList()
+	if err != nil {
+		os.Exit(1)
+	}
+
+	for _, v := range users.Users {
+		Download(v.ProfileImageUrl) // download
+	}
 
 	// input files
 	files := []string{"01.jpg", "02.jpg", "03.jpg"}
@@ -29,8 +47,8 @@ func UpdateProfileBackgroundImage() {
 	}
 
 	// save the combined image to file
-	err := imaging.Save(dst, "dst.jpg")
-	if err != nil {
+
+	if err := imaging.Save(dst, "dst.jpg"); err != nil {
 		panic(err)
 	}
 }
