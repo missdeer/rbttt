@@ -14,11 +14,12 @@ import (
 )
 
 var (
-	err    error
-	client *twittergo.Client
-	req    *http.Request
-	resp   *twittergo.APIResponse
-	user   *twittergo.User
+	err             error
+	client          *twittergo.Client
+	req             *http.Request
+	resp            *twittergo.APIResponse
+	user            *twittergo.User
+	credentialsFile string
 )
 
 type UserProfile struct {
@@ -64,7 +65,7 @@ func Authorize(force_auth bool) {
 		CallbackURL:    "oob",
 	}
 	// read access token key & access token secret from file
-	credentials, err := ioutil.ReadFile(".CREDENTIALS")
+	credentials, err := ioutil.ReadFile(credentialsFile)
 	if err == nil && force_auth == false {
 		lines := strings.Split(string(credentials), "\n")
 
@@ -94,7 +95,7 @@ func Authorize(force_auth bool) {
 			os.Exit(1)
 		}
 		// save access token key & access token secret to file
-		f, err := os.OpenFile(".CREDENTIALS", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+		f, err := os.OpenFile(credentialsFile, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
 		if err == nil {
 			f.WriteString(userConfig.AccessTokenKey)
 			f.WriteString("\n")
@@ -145,6 +146,7 @@ func main() {
 	flag.BoolVarP(&background, "backgroud", "g", false, "update profile background image with friends' avantar wall")
 	flag.BoolVarP(&all, "all", "a", false, "run all actions")
 	flag.BoolVarP(&reauth, "reauth", "r", false, "re-authenticate current credential")
+	flag.StringVarP(&credentialsFile, "config", "c", ".CREDENTIALS", "set configuration file which contains credentials")
 
 	flag.Parse()
 
