@@ -13,3 +13,4 @@ TODO:
 
 - update profile background image which is maked by friends' profile images
 - save authorization info as local settings
+- action by command line arguments
