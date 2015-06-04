@@ -118,18 +118,17 @@ func ClearBlockList() {
 			if err = UnblockUser(v.Id, v.ScreenName); err == nil {
 				fmt.Printf("id: %v, screen name: %s, name: %s, profile image url: %s, default image: %v, default profile: %v has been unblocked\n",
 					v.Id, v.ScreenName, v.Name, v.ProfileImageUrl, v.DefaultProfileImage, v.DefaultProfile)
+				time.Sleep(5 * time.Second)
 			} else {
 				time.Sleep(10 * time.Second)
 				goto try_unblock
 			}
-			time.Sleep(5 * time.Second)
 		}
 		i += len(users.Users)
 		if len(users.Users) < 1 {
 			break
 		}
 		cursor = users.NextCursor
-		time.Sleep(30 * time.Second)
 	}
 	fmt.Printf("unblocked %d users\n", i)
 }
