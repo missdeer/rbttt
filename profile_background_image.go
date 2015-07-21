@@ -93,8 +93,8 @@ func GenerateProfileBackgroundImage() {
 		os.Exit(1)
 	}
 
-	const width = 42
-	const height = 30
+	const width = 42 - 10
+	const height = 30 - 10
 	// create a new blank image
 	dst := imaging.New(width*48, height*48, color.NRGBA{0, 0, 0, 0})
 	// input files
