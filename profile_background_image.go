@@ -102,6 +102,9 @@ func GenerateProfileBackgroundImage() {
 	var y int = 0
 gen_background_image:
 	for _, v := range users {
+		if v.DefaultProfileImage == true {
+			continue
+		}
 		if b, err := Download(v.ProfileImageUrl); err == nil {
 			r := bytes.NewReader(b)
 			if img, _, err := image.Decode(r); err == nil {
@@ -166,6 +169,7 @@ func UpdateProfileBackgroundImage() {
 		fmt.Printf("Problem parsing media response: %v\n", err)
 		os.Exit(1)
 	}
+	fmt.Println("media uploaded:", media)
 
 	requestUrl := fmt.Sprintf(`/1.1/account/update_profile_background_image.json?skip_status=1&tile=1&media_id=%d`, media.MediaId)
 	req, err = http.NewRequest("POST", requestUrl, nil)
@@ -179,10 +183,26 @@ func UpdateProfileBackgroundImage() {
 		fmt.Printf("Could not send updating profile background image request: %v\n", err)
 		os.Exit(1)
 	} else {
+		b, err := ReadBody(resp)
+		if err != nil {
+			fmt.Println("reading body failed", err)
+			os.Exit(1)
+		}
+
+		var j map[string]interface{}
+		err = json.Unmarshal(b, &j)
+		if err == io.EOF {
+			err = nil
+		}
+		if err != nil {
+			fmt.Printf("Problem parsing media response: %v\n", err)
+			os.Exit(1)
+		}
+
 		if resp.StatusCode == twittergo.STATUS_OK {
-			fmt.Println("profile background image updated")
+			fmt.Println("profile background image updated", j)
 		} else {
-			fmt.Println(resp)
+			fmt.Println("updating profile background image failed", j)
 		}
 	}
 
