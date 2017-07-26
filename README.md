@@ -11,6 +11,13 @@ Features:
 - update profile background image which is joined by friends' profile images (command line option -g)
 - action by command line arguments
 
+Install:
+----
+
+```golang
+go get github.com/dfordsoft/rbttt
+```
+
 TODO:
 ----
 
