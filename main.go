@@ -3,14 +3,15 @@ package main
 import (
 	"compress/gzip"
 	"fmt"
-	"github.com/kurrik/oauth1a"
-	"github.com/kurrik/twittergo"
-	flag "github.com/ogier/pflag"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/kurrik/oauth1a"
+	"github.com/kurrik/twittergo"
+	flag "github.com/ogier/pflag"
 )
 
 var (
@@ -137,12 +138,14 @@ func main() {
 
 	unblock := false
 	block := false
+	sync := false
 	background := false
 	all := false
 	reauth := false
 
 	flag.BoolVarP(&unblock, "unblock", "u", false, "clear block list")
 	flag.BoolVarP(&block, "block", "b", false, "block followers who are using default profile image or have 0 tweet so far")
+	flag.BoolVarP(&sync, "sync", "s", false, "block all followers whom I'm not following")
 	flag.BoolVarP(&background, "backgroud", "g", false, "update profile background image with friends' avantar wall")
 	flag.BoolVarP(&all, "all", "a", false, "run all actions")
 	flag.BoolVarP(&reauth, "reauth", "r", false, "re-authenticate current credential")
@@ -154,6 +157,10 @@ func main() {
 
 	if all == true || block == true {
 		BlockUnexpectedUsers()
+	}
+
+	if all == true || sync == true {
+		BlockUnfollowingUsers()
 	}
 
 	if all == true || unblock == true {

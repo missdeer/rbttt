@@ -52,6 +52,40 @@ func UnblockUser(id int64, screen_name string) error {
 	return nil
 }
 
+func BlockUnfollowingUsers() {
+	followers, err := GetFollowersList()
+	if err != nil {
+		os.Exit(1)
+	}
+	friends, err := GetFriendsList()
+	if err != nil {
+		os.Exit(1)
+	}
+	i := 0
+	for _, follower := range followers {
+		isFriend := false
+		for _, friend := range friends {
+			if follower.Id == friend.Id {
+				isFriend = true
+				break
+			}
+		}
+
+		if !isFriend {
+			i++
+		try_block:
+			if err = BlockUser(follower.Id, follower.ScreenName); err == nil {
+				fmt.Printf("id: %v, screen name: %s, name: %s, profile image url: %s, default image: %v, default profile: %v, statuses count: %d has been blocked because I'm not following\n",
+					follower.Id, follower.ScreenName, follower.Name, follower.ProfileImageUrl, follower.DefaultProfileImage, follower.DefaultProfile, follower.StatusesCount)
+			} else {
+				time.Sleep(10 * time.Second)
+				goto try_block
+			}
+		}
+	}
+	fmt.Printf("blocked %d followers whom I'm not following\n", i)
+}
+
 func BlockUnexpectedUsers() {
 	users, err := GetFollowersList()
 	if err != nil {
