@@ -1,10 +1,14 @@
 package main
 
 import (
+	"bytes"
+	"compress/flate"
 	"compress/gzip"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -48,13 +52,30 @@ func ReadBody(r *twittergo.APIResponse) (b []byte, err error) {
 	)
 	defer r.Body.Close()
 	header = strings.ToLower(r.Header.Get("Content-Encoding"))
-	if header == "" || strings.Index(header, "gzip") == -1 {
+	switch header {
+	case "":
+		//log.Println("origin response:", r.Header)
 		reader = r.Body
-	} else {
+	case "gzip":
+		//log.Println("gziped response:", r.Header)
 		if reader, err = gzip.NewReader(r.Body); err != nil {
+			log.Fatalln("creating gzip reader failed:", err)
 			return
 		}
+	case "deflate":
+		//log.Println("deflate response:", r.Header)
+		content, e := ioutil.ReadAll(r.Body)
+		if e != nil {
+			log.Fatalln("reading inflate failed:", e)
+			return []byte{}, e
+		}
+
+		if reader = flate.NewReader(bytes.NewReader(content[2:])); reader == nil {
+			log.Fatalln("creating deflate reader failed")
+			return []byte{}, errors.New("creating deflate reader failed")
+		}
 	}
+
 	b, err = ioutil.ReadAll(reader)
 	return
 }

@@ -84,6 +84,7 @@ func GetFollowersList() ([]UserProfile, error) {
 			}
 			if err != nil {
 				fmt.Printf("Problem parsing followers response: %v\n", err)
+				//fmt.Println(string(b))
 				return nil, err
 			}
 		}
