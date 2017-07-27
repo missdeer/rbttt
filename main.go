@@ -82,8 +82,8 @@ func ReadBody(r *twittergo.APIResponse) (b []byte, err error) {
 
 func Authorize(force_auth bool) {
 	config := &oauth1a.ClientConfig{
-		ConsumerKey:    "5AD7pjFonMS6JIevrBz1Q",
-		ConsumerSecret: "wKdiQ2kPZMo2Q1uK71qv4KkW7L8NyLkbubTfh87ZU",
+		ConsumerKey:    "3nVuSoBZnx6U4vzUxf5w",
+		ConsumerSecret: "Bcs59EFbbsdF6Sl9Ng71smgStWEGwXXKSjYvPVt7qys",
 		CallbackURL:    "oob",
 	}
 	// read access token key & access token secret from file
