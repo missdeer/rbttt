@@ -1,0 +1,10 @@
+github.com/disintegration/imaging v1.6.0 h1:nVPXRUUQ36Z7MNf0O77UzgnOb1mkMMor7lmJMJXc/mA=
+github.com/disintegration/imaging v1.6.0/go.mod h1:xuIt+sRxDFrHS0drzXUlCJthkJ8k7lkkUojDSR247MQ=
+github.com/kurrik/oauth1a v0.0.0-20151019171716-cb1b80e32dd4 h1:hGX8e8fDuWmCOQEneaHtuiqiy1NsBnZW2G6lxitngus=
+github.com/kurrik/oauth1a v0.0.0-20151019171716-cb1b80e32dd4/go.mod h1:8buhLMuecANgNgxrsQynWlNt03oXr1B/v2xbuRSrnEc=
+github.com/kurrik/twittergo v0.0.0-20180727050659-f98e38bcafff h1:ioCdXCr9BXnNuPwxYrTllxBFW8wD2K2yvTZThRTSdUw=
+github.com/kurrik/twittergo v0.0.0-20180727050659-f98e38bcafff/go.mod h1:8LXjN6yItBbjlBtxMRLCfWK46yaoqRignovBZnyTiQ4=
+github.com/ogier/pflag v0.0.1 h1:RW6JSWSu/RkSatfcLtogGfFgpim5p7ARQ10ECk5O750=
+github.com/ogier/pflag v0.0.1/go.mod h1:zkFki7tvTa0tafRvTBIZTvzYyAu6kQhPZFnshFFPE+g=
+golang.org/x/image v0.0.0-20180708004352-c73c2afc3b81 h1:00VmoueYNlNz/aHIilyyQz/MHSqGoWJzpFv/HW8xpzI=
+golang.org/x/image v0.0.0-20180708004352-c73c2afc3b81/go.mod h1:ux5Hcp/YLpHSI86hEcLt0YII63i6oz57MZXIpbrjZUs=
