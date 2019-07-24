@@ -25,6 +25,8 @@ var (
 	resp            *twittergo.APIResponse
 	user            *twittergo.User
 	credentialsFile string
+	consumerKey     string
+	consumerSecret  string
 )
 
 type UserProfile struct {
@@ -82,8 +84,8 @@ func ReadBody(r *twittergo.APIResponse) (b []byte, err error) {
 
 func Authorize(force_auth bool) {
 	config := &oauth1a.ClientConfig{
-		ConsumerKey:    "3nVuSoBZnx6U4vzUxf5w",
-		ConsumerSecret: "Bcs59EFbbsdF6Sl9Ng71smgStWEGwXXKSjYvPVt7qys",
+		ConsumerKey:    consumerKey,
+		ConsumerSecret: consumerSecret,
 		CallbackURL:    "oob",
 	}
 	// read access token key & access token secret from file
@@ -170,6 +172,8 @@ func main() {
 	flag.BoolVarP(&background, "backgroud", "g", false, "update profile background image with friends' avantar wall")
 	flag.BoolVarP(&all, "all", "a", false, "run all actions")
 	flag.BoolVarP(&reauth, "reauth", "r", false, "re-authenticate current credential")
+	flag.StringVarP(&consumerKey, "key", "", "3nVuSoBZnx6U4vzUxf5w", "twitter application consumer key")
+	flag.StringVarP(&consumerSecret, "secret", "", "Bcs59EFbbsdF6Sl9Ng71smgStWEGwXXKSjYvPVt7qys", "twitter application consumer secret")
 	flag.StringVarP(&credentialsFile, "config", "c", ".CREDENTIALS", "set configuration file which contains credentials")
 
 	flag.Parse()
