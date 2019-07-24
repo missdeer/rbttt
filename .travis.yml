@@ -8,6 +8,8 @@ env:
   - GIT_EMAIL: missdeer@dfordsoft.com
 deploy:
   provider: releases
+  api_key:
+    secure: UGKLsWYDy55jqSfScjkAmKrTRNPTd82aLGtDnjK+sDTL9STPmKRtJAfO9XUFvEjwZsXi3L/7p5z2I3021b79qmR6EkIliG9MdCQLI2v53SVL5yY6SBafVEFsLiawkJXQaZ5AteBtmVm+Q94UwnDo5r1nbMIqSqBoCDMYpGCjwj0aVBCQ/eWvpeV/2It4bGqiPH9YJTMuSABgbRz25Tno8iry42aNr40vwkv0FH5kQjjd3qdLbLudPkAqatFaC5vi/1d1vDsTABGL8pQuoVmmknME8Di9M4PdATWkusGNy2OV2jgBmaIiCGAmrTgYDHbqljX2XnixJ//9EsMbgCzI+zvKAyLFNyAQFolFz4wAC6d86ebzjryIjq3j1pUWGiLTN26d0I79/fdXZhG/tV9UDvxNA5L9Ze+BFmrmmZhi6mOrjLi4YT5B8dE3EPAoRpiAiDexba3HpixyB8d/HNAURyHncFQDQQ92GXof9gatfVHYXKiETyj4VP7i3dqzkTE1Lm34TwKErDSFGTLnCn7ilWGkKqTD2d+FuaMhsYa/PC83b7SCRHujH8w+xJQt4DJvPj3E/7E4YJ2UA+gwwWGXZyAWSCVjJmftEfztUcxyxYb4gV4Er4hR6sE+bhXKwUwhs7WiRKQ9FU2I3255TwKffjLRn1+EoxE1cIKIYmLEkUs=
   file:
     - rbttt-darwin-amd64.tar.gz
     - rbttt-dragonflybsd-amd64.tar.gz
