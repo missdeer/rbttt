@@ -135,8 +135,6 @@ before_build:
 # custom build scripts
 build_script:
     - go build -ldflags="-s -w" -o "rbttt-%PREFIX%%SUFFIX%"
-    - cd webui && go build -ldflags="-s -w" -o "rbttt-webui%PREFIX%%SUFFIX%"
-    - cd ..
 
 # scripts that run after build
 after_build:
