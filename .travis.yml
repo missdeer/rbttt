@@ -1,0 +1,69 @@
+language: go
+go:
+- tip
+env:
+  global:
+  - GITHUB_REPO: missdeer/rbttt
+  - GIT_NAME: missdeer
+  - GIT_EMAIL: missdeer@dfordsoft.com
+deploy:
+  provider: releases
+  file:
+    - rbttt-darwin-amd64.tar.gz
+    - rbttt-dragonflybsd-amd64.tar.gz
+    - rbttt-freebsd-amd64.tar.gz
+    - rbttt-freebsd-arm.tar.gz
+    - rbttt-freebsd-386.tar.gz
+    - rbttt-linux-amd64.tar.gz
+    - rbttt-linux-arm64.tar.gz
+    - rbttt-linux-armv6.tar.gz
+    - rbttt-linux-armv7.tar.gz
+    - rbttt-linux-mips64.tar.gz
+    - rbttt-linux-mips64le.tar.gz
+    - rbttt-linux-mips.tar.gz
+    - rbttt-linux-mipsle.tar.gz
+    - rbttt-linux-ppc64.tar.gz
+    - rbttt-linux-ppc64le.tar.gz
+    - rbttt-linux-386.tar.gz
+    - rbttt-linux-s390x.tar.gz
+    - rbttt-netbsd-amd64.tar.gz
+    - rbttt-netbsd-arm.tar.gz
+    - rbttt-netbsd-386.tar.gz
+    - rbttt-openbsd-amd64.tar.gz
+    - rbttt-openbsd-386.tar.gz
+    - rbttt-solaris-amd64.tar.gz
+    - rbttt-windows-amd64.tar.gz
+    - rbttt-windows-386.tar.gz
+  on:
+    repo: missdeer/rbttt
+    tags: true
+  skip_cleanup: true
+script:
+  - pwd && ls -l
+  - env GOARCH=amd64       GOOS=linux     go build -ldflags="-s -w -X main.sha1ver=`git rev-parse HEAD` -X main.buildTime=$(date +'%Y-%m-%d_%T')" -o rbttt     && tar czvf rbttt-linux-amd64.tar.gz        rbttt
+  - env GOARCH=386         GOOS=linux     go build -ldflags="-s -w -X main.sha1ver=`git rev-parse HEAD` -X main.buildTime=$(date +'%Y-%m-%d_%T')" -o rbttt     && tar czvf rbttt-linux-386.tar.gz          rbttt
+  - env GOARCH=arm GOARM=5 GOOS=linux     go build -ldflags="-s -w -X main.sha1ver=`git rev-parse HEAD` -X main.buildTime=$(date +'%Y-%m-%d_%T')" -o rbttt     && tar czvf rbttt-linux-armv5.tar.gz        rbttt
+  - env GOARCH=arm GOARM=6 GOOS=linux     go build -ldflags="-s -w -X main.sha1ver=`git rev-parse HEAD` -X main.buildTime=$(date +'%Y-%m-%d_%T')" -o rbttt     && tar czvf rbttt-linux-armv6.tar.gz        rbttt
+  - env GOARCH=arm GOARM=7 GOOS=linux     go build -ldflags="-s -w -X main.sha1ver=`git rev-parse HEAD` -X main.buildTime=$(date +'%Y-%m-%d_%T')" -o rbttt     && tar czvf rbttt-linux-armv7.tar.gz        rbttt
+  - env GOARCH=arm64       GOOS=linux     go build -ldflags="-s -w -X main.sha1ver=`git rev-parse HEAD` -X main.buildTime=$(date +'%Y-%m-%d_%T')" -o rbttt     && tar czvf rbttt-linux-arm64.tar.gz        rbttt
+  - env GOARCH=ppc64       GOOS=linux     go build -ldflags="-s -w -X main.sha1ver=`git rev-parse HEAD` -X main.buildTime=$(date +'%Y-%m-%d_%T')" -o rbttt     && tar czvf rbttt-linux-ppc64.tar.gz        rbttt
+  - env GOARCH=ppc64le     GOOS=linux     go build -ldflags="-s -w -X main.sha1ver=`git rev-parse HEAD` -X main.buildTime=$(date +'%Y-%m-%d_%T')" -o rbttt     && tar czvf rbttt-linux-ppc64le.tar.gz      rbttt
+  - env GOARCH=mips64      GOOS=linux     go build -ldflags="-s -w -X main.sha1ver=`git rev-parse HEAD` -X main.buildTime=$(date +'%Y-%m-%d_%T')" -o rbttt     && tar czvf rbttt-linux-mips64.tar.gz       rbttt
+  - env GOARCH=mips64le    GOOS=linux     go build -ldflags="-s -w -X main.sha1ver=`git rev-parse HEAD` -X main.buildTime=$(date +'%Y-%m-%d_%T')" -o rbttt     && tar czvf rbttt-linux-mips64le.tar.gz     rbttt
+  - env GOARCH=mips        GOOS=linux     go build -ldflags="-s -w -X main.sha1ver=`git rev-parse HEAD` -X main.buildTime=$(date +'%Y-%m-%d_%T')" -o rbttt     && tar czvf rbttt-linux-mips.tar.gz         rbttt
+  - env GOARCH=mipsle      GOOS=linux     go build -ldflags="-s -w -X main.sha1ver=`git rev-parse HEAD` -X main.buildTime=$(date +'%Y-%m-%d_%T')" -o rbttt     && tar czvf rbttt-linux-mipsle.tar.gz       rbttt
+  - env GOARCH=s390x       GOOS=linux     go build -ldflags="-s -w -X main.sha1ver=`git rev-parse HEAD` -X main.buildTime=$(date +'%Y-%m-%d_%T')" -o rbttt     && tar czvf rbttt-linux-s390x.tar.gz        rbttt
+  - env GOARCH=amd64       GOOS=darwin    go build -ldflags="-s -w -X main.sha1ver=`git rev-parse HEAD` -X main.buildTime=$(date +'%Y-%m-%d_%T')" -o rbttt     && tar czvf rbttt-darwin-amd64.tar.gz       rbttt
+  - env GOARCH=amd64       GOOS=windows   go build -ldflags="-s -w -X main.sha1ver=`git rev-parse HEAD` -X main.buildTime=$(date +'%Y-%m-%d_%T')" -o rbttt.exe && tar czvf rbttt-windows-amd64.tar.gz      rbttt.exe
+  - env GOARCH=386         GOOS=windows   go build -ldflags="-s -w -X main.sha1ver=`git rev-parse HEAD` -X main.buildTime=$(date +'%Y-%m-%d_%T')" -o rbttt.exe && tar czvf rbttt-windows-386.tar.gz        rbttt.exe
+  - env GOARCH=amd64       GOOS=freebsd   go build -ldflags="-s -w -X main.sha1ver=`git rev-parse HEAD` -X main.buildTime=$(date +'%Y-%m-%d_%T')" -o rbttt     && tar czvf rbttt-freebsd-amd64.tar.gz      rbttt
+  - env GOARCH=386         GOOS=freebsd   go build -ldflags="-s -w -X main.sha1ver=`git rev-parse HEAD` -X main.buildTime=$(date +'%Y-%m-%d_%T')" -o rbttt     && tar czvf rbttt-freebsd-386.tar.gz        rbttt
+  - env GOARCH=arm         GOOS=freebsd   go build -ldflags="-s -w -X main.sha1ver=`git rev-parse HEAD` -X main.buildTime=$(date +'%Y-%m-%d_%T')" -o rbttt     && tar czvf rbttt-freebsd-arm.tar.gz        rbttt
+  - env GOARCH=amd64       GOOS=openbsd   go build -ldflags="-s -w -X main.sha1ver=`git rev-parse HEAD` -X main.buildTime=$(date +'%Y-%m-%d_%T')" -o rbttt     && tar czvf rbttt-openbsd-amd64.tar.gz      rbttt
+  - env GOARCH=386         GOOS=openbsd   go build -ldflags="-s -w -X main.sha1ver=`git rev-parse HEAD` -X main.buildTime=$(date +'%Y-%m-%d_%T')" -o rbttt     && tar czvf rbttt-openbsd-386.tar.gz        rbttt
+  - env GOARCH=amd64       GOOS=netbsd    go build -ldflags="-s -w -X main.sha1ver=`git rev-parse HEAD` -X main.buildTime=$(date +'%Y-%m-%d_%T')" -o rbttt     && tar czvf rbttt-netbsd-amd64.tar.gz       rbttt
+  - env GOARCH=386         GOOS=netbsd    go build -ldflags="-s -w -X main.sha1ver=`git rev-parse HEAD` -X main.buildTime=$(date +'%Y-%m-%d_%T')" -o rbttt     && tar czvf rbttt-netbsd-386.tar.gz         rbttt
+  - env GOARCH=arm         GOOS=netbsd    go build -ldflags="-s -w -X main.sha1ver=`git rev-parse HEAD` -X main.buildTime=$(date +'%Y-%m-%d_%T')" -o rbttt     && tar czvf rbttt-netbsd-arm.tar.gz         rbttt
+  - env GOARCH=amd64       GOOS=dragonfly go build -ldflags="-s -w -X main.sha1ver=`git rev-parse HEAD` -X main.buildTime=$(date +'%Y-%m-%d_%T')" -o rbttt     && tar czvf rbttt-dragonflybsd-amd64.tar.gz rbttt
+  - env GOARCH=amd64       GOOS=solaris   go build -ldflags="-s -w -X main.sha1ver=`git rev-parse HEAD` -X main.buildTime=$(date +'%Y-%m-%d_%T')" -o rbttt     && tar czvf rbttt-solaris-amd64.tar.gz      rbttt
+  - ls -l
