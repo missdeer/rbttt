@@ -7,8 +7,7 @@ A small twitter auxilary tool.
 [![Github All Releases Download Count](https://img.shields.io/github/downloads/missdeer/rbttt/total.svg)](https://github.com/missdeer/rbttt/releases) 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/missdeer/rbttt/master/LICENSE)
 
-Features:
-----
+# Features 
 
 - block followers who are using default profile image (command line option -b)
 - block followers who have 0 tweet posted (command line option -b)
@@ -17,14 +16,16 @@ Features:
 - update profile background image which is joined by friends' profile images (command line option -g)
 - action by command line arguments
 
-Install:
-----
+# Install
 
 ```golang
-go get github.com/dfordsoft/rbttt
+go get github.com/missdeer/rbttt
 ```
 
-TODO:
-----
+# TODO
 
 - more useful features
+
+# Notes
+
+Consumer keys can be found [here](https://gist.github.com/mariotaku/5465786). Use these keys instead of applying yourself can get rid of rate limit.
