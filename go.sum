@@ -1,11 +1,7 @@
-github.com/disintegration/imaging v1.6.0 h1:nVPXRUUQ36Z7MNf0O77UzgnOb1mkMMor7lmJMJXc/mA=
-github.com/disintegration/imaging v1.6.0/go.mod h1:xuIt+sRxDFrHS0drzXUlCJthkJ8k7lkkUojDSR247MQ=
 github.com/disintegration/imaging v1.6.2 h1:w1LecBlG2Lnp8B3jk5zSuNqd7b4DXhcjwek1ei82L+c=
 github.com/disintegration/imaging v1.6.2/go.mod h1:44/5580QXChDfwIclfc/PCwrr44amcmDAg8hxG0Ewe4=
 github.com/kurrik/oauth1a v0.0.0-20151019171716-cb1b80e32dd4 h1:hGX8e8fDuWmCOQEneaHtuiqiy1NsBnZW2G6lxitngus=
 github.com/kurrik/oauth1a v0.0.0-20151019171716-cb1b80e32dd4/go.mod h1:8buhLMuecANgNgxrsQynWlNt03oXr1B/v2xbuRSrnEc=
-github.com/kurrik/twittergo v0.0.0-20180727050659-f98e38bcafff h1:ioCdXCr9BXnNuPwxYrTllxBFW8wD2K2yvTZThRTSdUw=
-github.com/kurrik/twittergo v0.0.0-20180727050659-f98e38bcafff/go.mod h1:8LXjN6yItBbjlBtxMRLCfWK46yaoqRignovBZnyTiQ4=
 github.com/kurrik/twittergo v0.0.0-20190804010542-25ed642452e5 h1:2OHWQzMsoV/D14Mi+GPx5k82AGsNjymqK/dndop88c0=
 github.com/kurrik/twittergo v0.0.0-20190804010542-25ed642452e5/go.mod h1:8LXjN6yItBbjlBtxMRLCfWK46yaoqRignovBZnyTiQ4=
 github.com/ogier/pflag v0.0.1 h1:RW6JSWSu/RkSatfcLtogGfFgpim5p7ARQ10ECk5O750=
