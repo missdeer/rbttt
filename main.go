@@ -15,7 +15,7 @@ import (
 
 	"github.com/kurrik/oauth1a"
 	"github.com/kurrik/twittergo"
-	flag "github.com/ogier/pflag"
+	flag "github.com/spf13/pflag"
 )
 
 var (
