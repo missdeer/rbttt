@@ -23,7 +23,3 @@ go get github.com/missdeer/rbttt
 # TODO
 
 - more useful features
-
-# Notes
-
-Consumer keys can be found [here](https://gist.github.com/mariotaku/5465786). Use these keys instead of applying yourself can get rid of rate limit.
