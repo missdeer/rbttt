@@ -109,7 +109,7 @@ func BlockUnexpectedUsers() {
 }
 
 func ClearBlockList() {
-	/// get block list
+	// / get block list
 	var cursor int64 = -1
 	var i int = 0
 	for {

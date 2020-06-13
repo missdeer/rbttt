@@ -27,6 +27,15 @@ var (
 	credentialsFile string
 	consumerKey     string
 	consumerSecret  string
+
+	// actions
+	unblockAction    bool
+	blockAction      bool
+	syncAction       bool
+	backgroundAction bool
+	allAction        bool
+	reauthAction     bool
+	syncUserAction   bool
 )
 
 type UserProfile struct {
@@ -56,16 +65,13 @@ func ReadBody(r *twittergo.APIResponse) (b []byte, err error) {
 	header = strings.ToLower(r.Header.Get("Content-Encoding"))
 	switch header {
 	case "":
-		//log.Println("origin response:", r.Header)
 		reader = r.Body
 	case "gzip":
-		//log.Println("gziped response:", r.Header)
 		if reader, err = gzip.NewReader(r.Body); err != nil {
 			log.Fatalln("creating gzip reader failed:", err)
 			return
 		}
 	case "deflate":
-		//log.Println("deflate response:", r.Header)
 		content, e := ioutil.ReadAll(r.Body)
 		if e != nil {
 			log.Fatalln("reading inflate failed:", e)
@@ -144,6 +150,7 @@ func Authorize(force_auth bool) {
 		fmt.Printf("Could not send request: %v\n", err)
 		os.Exit(1)
 	}
+	defer resp.Body.Close()
 
 	user = &twittergo.User{}
 	err = resp.Parse(user)
@@ -159,40 +166,38 @@ func Authorize(force_auth bool) {
 func main() {
 	fmt.Println("rbttt, the small twitter helper tool.")
 
-	unblock := false
-	block := false
-	sync := false
-	background := false
-	all := false
-	reauth := false
-
-	flag.BoolVarP(&unblock, "unblock", "u", false, "clear block list")
-	flag.BoolVarP(&block, "block", "b", false, "block followers who are using default profile image or have 0 tweet so far")
-	flag.BoolVarP(&sync, "sync", "s", false, "block all followers whom I'm not following")
-	flag.BoolVarP(&background, "backgroud", "g", false, "update profile background image with friends' avantar wall")
-	flag.BoolVarP(&all, "all", "a", false, "run all actions")
-	flag.BoolVarP(&reauth, "reauth", "r", false, "re-authenticate current credential")
-	flag.StringVarP(&consumerKey, "key", "", "3nVuSoBZnx6U4vzUxf5w", "twitter application consumer key")
-	flag.StringVarP(&consumerSecret, "secret", "", "Bcs59EFbbsdF6Sl9Ng71smgStWEGwXXKSjYvPVt7qys", "twitter application consumer secret")
+	flag.BoolVarP(&syncUserAction, "syncUser", "y", false, "sync user")
+	flag.BoolVarP(&unblockAction, "unblock", "u", false, "clear block list")
+	flag.BoolVarP(&blockAction, "block", "b", false, "block followers who are using default profile image or have 0 tweet so far")
+	flag.BoolVarP(&syncAction, "sync", "s", false, "block allAction followers whom I'm not following")
+	flag.BoolVarP(&backgroundAction, "backgroud", "g", false, "update profile backgroundAction image with friends' avantar wall")
+	flag.BoolVarP(&allAction, "all", "a", false, "run all actions")
+	flag.BoolVarP(&reauthAction, "reauth", "r", false, "re-authenticate current credential")
+	flag.StringVarP(&consumerKey, "key", "", "", "twitter application consumer key")
+	flag.StringVarP(&consumerSecret, "secret", "", "", "twitter application consumer secret")
 	flag.StringVarP(&credentialsFile, "config", "c", ".CREDENTIALS", "set configuration file which contains credentials")
 
 	flag.Parse()
 
-	Authorize(reauth)
+	Authorize(reauthAction)
 
-	if all == true || block == true {
+	if allAction == true || blockAction == true {
 		BlockUnexpectedUsers()
 	}
 
-	if all == true || sync == true {
+	if allAction == true || syncAction == true {
 		BlockUnfollowingUsers()
 	}
 
-	if all == true || unblock == true {
+	if allAction == true || unblockAction == true {
 		ClearBlockList()
 	}
 
-	if all == true || background == true {
+	if allAction == true || backgroundAction == true {
 		UpdateProfileBackgroundImage()
+	}
+
+	if allAction == true || syncUserAction == true {
+		syncUser()
 	}
 }

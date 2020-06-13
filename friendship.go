@@ -53,7 +53,7 @@ func GetFriendsList() ([]UserProfile, error) {
 }
 
 func GetFollowersList() ([]UserProfile, error) {
-	/// get followers list
+	// / get followers list
 	var cursor int64 = -1
 	var users []UserProfile
 	for {
@@ -84,7 +84,7 @@ func GetFollowersList() ([]UserProfile, error) {
 			}
 			if err != nil {
 				fmt.Printf("Problem parsing followers response: %v\n", err)
-				//fmt.Println(string(b))
+				// fmt.Println(string(b))
 				return nil, err
 			}
 		}

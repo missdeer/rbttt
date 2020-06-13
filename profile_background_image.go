@@ -5,8 +5,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/disintegration/imaging"
-	"github.com/kurrik/twittergo"
 	"image"
 	"image/color"
 	_ "image/gif"
@@ -18,6 +16,9 @@ import (
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/disintegration/imaging"
+	"github.com/kurrik/twittergo"
 )
 
 const (
@@ -87,7 +88,7 @@ func GetBody() (body io.ReadWriter, header string, err error) {
 }
 
 func GenerateProfileBackgroundImage() {
-	// first download all friends profile images
+	// first download allAction friends profile images
 	users, err := GetFriendsList()
 	if err != nil {
 		os.Exit(1)
@@ -182,28 +183,27 @@ func UpdateProfileBackgroundImage() {
 	if err != nil {
 		fmt.Printf("Could not send updating profile background image request: %v\n", err)
 		os.Exit(1)
-	} else {
-		b, err := ReadBody(resp)
-		if err != nil {
-			fmt.Println("reading body failed", err)
-			os.Exit(1)
-		}
-
-		var j map[string]interface{}
-		err = json.Unmarshal(b, &j)
-		if err == io.EOF {
-			err = nil
-		}
-		if err != nil {
-			fmt.Printf("Problem parsing media response: %v\n", err)
-			os.Exit(1)
-		}
-
-		if resp.StatusCode == twittergo.STATUS_OK {
-			fmt.Println("profile background image updated", j)
-		} else {
-			fmt.Println("updating profile background image failed", j)
-		}
 	}
 
+	b, err = ReadBody(resp)
+	if err != nil {
+		fmt.Println("reading body failed", err)
+		os.Exit(1)
+	}
+
+	var j map[string]interface{}
+	err = json.Unmarshal(b, &j)
+	if err == io.EOF {
+		err = nil
+	}
+	if err != nil {
+		fmt.Printf("Problem parsing media response: %v\n", err)
+		os.Exit(1)
+	}
+
+	if resp.StatusCode == twittergo.STATUS_OK {
+		fmt.Println("profile background image updated", j)
+	} else {
+		fmt.Println("updating profile background image failed", j)
+	}
 }
