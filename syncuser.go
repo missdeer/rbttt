@@ -73,6 +73,7 @@ func syncUser() error {
 	query.Set("screen_name", "freshfruitcn")
 	query.Set("user_id", fmt.Sprint(userID))
 	query.Set("count", "10")
+	query.Set("tweet_mode", "extended")
 
 	req, err = http.NewRequest("GET", fmt.Sprintf("/1.1/statuses/user_timeline.json?%v", query.Encode()), nil)
 	if err != nil {
@@ -128,6 +129,23 @@ func syncUser() error {
 			fmt.Println("not posted by user", userID)
 			continue
 		}
+
+		// check tag
+		tags := tweet.Entities().Hashtags()
+		for _, tag := range tags {
+			text, ok := tag["text"]
+			if ok {
+				t, ok := text.(string)
+				if ok && t == "FF" {
+					// do retweet
+					if err = retweet(tweet.Id()); err == nil {
+						fmt.Println(tweet.Id(), "is retweeted")
+					}
+					break
+				}
+			}
+		}
+
 		// check has media
 		ee := tweet.ExtendedEntities()
 		if len(ee) == 0 {
