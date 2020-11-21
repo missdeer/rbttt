@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
+	"time"
 
 	"github.com/kurrik/twittergo"
 )
@@ -42,16 +44,39 @@ func findUser() (uint64, error) {
 	return user.Id(), nil
 }
 
-func retweet(id uint64) error {
-	req, err = http.NewRequest("POST", fmt.Sprintf("/1.1/statuses/retweet/%d.json", id), nil)
+func unretweet(id uint64) error {
+	req, err = http.NewRequest("POST", fmt.Sprintf("/1.1/statuses/unretweet/%d.json", id), nil)
 	if err != nil {
-		fmt.Printf("Could not parse sync user request: %v\n", err)
+		fmt.Printf("Could not parse unretweet request: %v\n", err)
 		return err
 	}
 
 	resp, err = client.SendRequest(req)
 	if err != nil {
-		fmt.Printf("Could not send sync user request: %v\n", err)
+		fmt.Printf("Could not send unretweet request: %v\n", err)
+		return err
+	}
+
+	b, err := ReadBody(resp)
+	if err != nil {
+		fmt.Printf("UnRetweeting failed: %v\n", err, string(b))
+		return err
+	}
+	fmt.Println(string(b))
+
+	return nil
+}
+
+func retweet(id uint64) error {
+	req, err = http.NewRequest("POST", fmt.Sprintf("/1.1/statuses/retweet/%d.json", id), nil)
+	if err != nil {
+		fmt.Printf("Could not parse retweet request: %v\n", err)
+		return err
+	}
+
+	resp, err = client.SendRequest(req)
+	if err != nil {
+		fmt.Printf("Could not send retweet request: %v\n", err)
 		return err
 	}
 
@@ -64,6 +89,83 @@ func retweet(id uint64) error {
 	return nil
 }
 
+func unretweetAll(all bool) error {
+	var maxID uint64
+	query := url.Values{}
+	for {
+		query.Set("screen_name", user.ScreenName())
+		query.Set("user_id", fmt.Sprint(user.Id()))
+		query.Set("count", "200")
+		query.Set("tweet_mode", "extended")
+		if maxID > 0 {
+			query.Set("max_id", fmt.Sprint(maxID))
+		}
+		req, err = http.NewRequest("GET", fmt.Sprintf("/1.1/statuses/user_timeline.json?%v", query.Encode()), nil)
+		if err != nil {
+			fmt.Printf("Could not parse user_timeline request: %v\n", err)
+			return err
+		}
+
+		resp, err = client.SendRequest(req)
+		if err != nil {
+			fmt.Printf("Could not send user_timeline request: %v\n", err)
+			return err
+		}
+
+		var tweets []twittergo.Tweet
+		err = resp.Parse(&tweets)
+		if err != nil {
+			fmt.Printf("Problem parsing response: %v\n", err)
+			os.Exit(1)
+		}
+
+		for _, tweet := range tweets {
+			rs, ok := tweet["retweeted_status"]
+			if !ok {
+				// fmt.Println("can't find retweeted_status field")
+				continue
+			}
+			fmt.Println(tweet.Id(), "find retweeted_status field")
+			t, ok := rs.(map[string]interface{})
+			if !ok {
+				fmt.Println(tweet.Id(), "can't convert retweeted_status")
+				continue
+			}
+			c, ok := t["created_at"]
+			if !ok {
+				fmt.Println(tweet.Id(), "can't extract retweeted_status created at")
+				continue
+			}
+			createdAt, err := time.Parse(time.RubyDate, c.(string))
+			if err != nil {
+				fmt.Println(tweet.Id(), "can't parse retweeted_status created at")
+				continue
+			}
+			if createdAt.Add(24 * time.Hour).Before(time.Now()) {
+				idStr, ok := t["id_str"]
+				if !ok {
+					fmt.Println(tweet.Id(), "can't parse retweeted_status id str")
+					continue
+				}
+				id, err := strconv.ParseUint(idStr.(string), 10, 64)
+				if err != nil {
+					fmt.Println(tweet.Id(), "can't convert retweeted_status id")
+					continue
+				}
+				unretweet(id)
+				fmt.Println(id, "is unretweeted")
+				continue
+			}
+		}
+
+		maxID = tweets[len(tweets)-1].Id()
+		if !all {
+			break
+		}
+	}
+	return nil
+}
+
 func syncUser() error {
 	userID, err := findUser()
 	if err != nil {
@@ -72,7 +174,7 @@ func syncUser() error {
 	query := url.Values{}
 	query.Set("screen_name", "freshfruitcn")
 	query.Set("user_id", fmt.Sprint(userID))
-	query.Set("count", "10")
+	query.Set("count", "100")
 	query.Set("tweet_mode", "extended")
 
 	req, err = http.NewRequest("GET", fmt.Sprintf("/1.1/statuses/user_timeline.json?%v", query.Encode()), nil)
@@ -95,13 +197,16 @@ func syncUser() error {
 	}
 
 	for _, tweet := range tweets {
+		if tweet.CreatedAt().Add(24 * time.Hour).Before(time.Now()) {
+			break
+		}
 		rt, ok := tweet["retweeted"]
 		if !ok {
 			fmt.Println("can't find retweet field")
 			continue
 		}
 		if rt.(bool) == true {
-			fmt.Println("already retweeted")
+			fmt.Println(tweet.Id(), "already retweeted")
 			continue
 		}
 		// check user
@@ -140,8 +245,8 @@ func syncUser() error {
 					// do retweet
 					if err = retweet(tweet.Id()); err == nil {
 						fmt.Println(tweet.Id(), "is retweeted")
+						return nil
 					}
-					break
 				}
 			}
 		}
@@ -156,6 +261,7 @@ func syncUser() error {
 		// do retweet
 		if err = retweet(tweet.Id()); err == nil {
 			fmt.Println(tweet.Id(), "is retweeted")
+			return nil
 		}
 	}
 

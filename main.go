@@ -29,13 +29,15 @@ var (
 	consumerSecret  string
 
 	// actions
-	unblockAction    bool
-	blockAction      bool
-	syncAction       bool
-	backgroundAction bool
-	allAction        bool
-	reauthAction     bool
-	syncUserAction   bool
+	unblockAction      bool
+	blockAction        bool
+	syncAction         bool
+	backgroundAction   bool
+	allAction          bool
+	reauthAction       bool
+	syncUserAction     bool
+	unretweetAllAction bool
+	unretweetAction    bool
 )
 
 type UserProfile struct {
@@ -167,6 +169,8 @@ func main() {
 	fmt.Println("rbttt, the small twitter helper tool.")
 
 	flag.BoolVarP(&syncUserAction, "syncUser", "y", false, "sync user")
+	flag.BoolVarP(&unretweetAction, "unretweet", "t", false, "unretweet ")
+	flag.BoolVarP(&unretweetAllAction, "unretweetAll", "", false, "unretweet all")
 	flag.BoolVarP(&unblockAction, "unblock", "u", false, "clear block list")
 	flag.BoolVarP(&blockAction, "block", "b", false, "block followers who are using default profile image or have 0 tweet so far")
 	flag.BoolVarP(&syncAction, "sync", "s", false, "block allAction followers whom I'm not following")
@@ -199,5 +203,9 @@ func main() {
 
 	if allAction == true || syncUserAction == true {
 		syncUser()
+	}
+
+	if allAction == true || unretweetAction == true {
+		unretweetAll(unretweetAllAction)
 	}
 }
