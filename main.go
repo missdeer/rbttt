@@ -2,8 +2,6 @@ package main
 
 import (
 	"bytes"
-	"compress/flate"
-	"compress/gzip"
 	"errors"
 	"fmt"
 	"io"
@@ -12,6 +10,9 @@ import (
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/klauspost/compress/flate"
+	"github.com/klauspost/compress/gzip"
 
 	"github.com/kurrik/oauth1a"
 	"github.com/kurrik/twittergo"
