@@ -8,7 +8,7 @@ jobs:
     steps:
 
     - name: Set up Go 1.16
-      uses: actions/setup-go@v1
+      uses: actions/setup-go@v2
       with:
         go-version: 1.16
       id: go
@@ -27,6 +27,7 @@ jobs:
         env CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=7 go build -o linux-arm-7/rbttt -ldflags="-s -w" .
         env CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o linux-arm64/rbttt -ldflags="-s -w" .
         env CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o darwin-amd64/rbttt -ldflags="-s -w" .
+        env CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -o darwin-arm64/rbttt -ldflags="-s -w" .
         env CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o windows-amd64/rbttt.exe -ldflags="-s -w" .
         env CGO_ENABLED=0 GOOS=windows GOARCH=386 go build -o windows-386/rbttt.exe -ldflags="-s -w" .
         env CGO_ENABLED=0 GOOS=freebsd GOARCH=amd64 go build -o freebsd-amd64/rbttt -ldflags="-s -w" .
@@ -85,6 +86,14 @@ jobs:
         name: rbttt-linux-arm64
         # Directory containing files to upload
         path: linux-arm64
+
+    - name: Upload artifact rbttt-darwin-arm64
+      uses: actions/upload-artifact@v1.0.0
+      with:
+        # Artifact name
+        name: rbttt-darwin-arm64
+        # Directory containing files to upload
+        path: darwin-arm64
 
     - name: Upload artifact rbttt-darwin-amd64
       uses: actions/upload-artifact@v1.0.0
