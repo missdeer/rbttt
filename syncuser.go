@@ -47,19 +47,19 @@ func findUser() (uint64, error) {
 func unretweet(id uint64) error {
 	req, err = http.NewRequest("POST", fmt.Sprintf("/1.1/statuses/unretweet/%d.json", id), nil)
 	if err != nil {
-		fmt.Printf("Could not parse unretweet request: %v\n", err)
+		fmt.Println("Could not parse unretweet request: ", err)
 		return err
 	}
 
 	resp, err = client.SendRequest(req)
 	if err != nil {
-		fmt.Printf("Could not send unretweet request: %v\n", err)
+		fmt.Println("Could not send unretweet request: ", err)
 		return err
 	}
 
 	b, err := ReadBody(resp)
 	if err != nil {
-		fmt.Printf("UnRetweeting failed: %v\n", err, string(b))
+		fmt.Println("UnRetweeting failed: ", err, string(b))
 		return err
 	}
 	fmt.Println(string(b))
@@ -70,19 +70,19 @@ func unretweet(id uint64) error {
 func retweet(id uint64) error {
 	req, err = http.NewRequest("POST", fmt.Sprintf("/1.1/statuses/retweet/%d.json", id), nil)
 	if err != nil {
-		fmt.Printf("Could not parse retweet request: %v\n", err)
+		fmt.Println("Could not parse retweet request: ", err)
 		return err
 	}
 
 	resp, err = client.SendRequest(req)
 	if err != nil {
-		fmt.Printf("Could not send retweet request: %v\n", err)
+		fmt.Println("Could not send retweet request: ", err)
 		return err
 	}
 
 	b, err := ReadBody(resp)
 	if err != nil {
-		fmt.Printf("Retweeting failed: %v\n", err, string(b))
+		fmt.Println("Retweeting failed: ", err, string(b))
 		return err
 	}
 
@@ -102,27 +102,29 @@ func unretweetAll(all bool) error {
 		}
 		req, err = http.NewRequest("GET", fmt.Sprintf("/1.1/statuses/user_timeline.json?%v", query.Encode()), nil)
 		if err != nil {
-			fmt.Printf("Could not parse user_timeline request: %v\n", err)
+			fmt.Println("Could not parse user_timeline request: ", err)
 			return err
 		}
 
 		resp, err = client.SendRequest(req)
 		if err != nil {
-			fmt.Printf("Could not send user_timeline request: %v\n", err)
+			fmt.Println("Could not send user_timeline request: ", err)
 			return err
 		}
 
 		var tweets []twittergo.Tweet
 		err = resp.Parse(&tweets)
 		if err != nil {
-			fmt.Printf("Problem parsing response: %v\n", err)
+			fmt.Println("Problem parsing response: ", err)
 			os.Exit(1)
 		}
 
-		for _, tweet := range tweets {
+		fmt.Println("find tweets count:", len(tweets))
+		for i, tweet := range tweets {
+			fmt.Println(tweet.Id(), "tweet", i, tweet.FullText())
 			rs, ok := tweet["retweeted_status"]
 			if !ok {
-				// fmt.Println("can't find retweeted_status field")
+				fmt.Println("can't find retweeted_status field")
 				continue
 			}
 			fmt.Println(tweet.Id(), "find retweeted_status field")
@@ -179,20 +181,20 @@ func syncUser() error {
 
 	req, err = http.NewRequest("GET", fmt.Sprintf("/1.1/statuses/user_timeline.json?%v", query.Encode()), nil)
 	if err != nil {
-		fmt.Printf("Could not parse get user timeline request: %v\n", err)
+		fmt.Println("Could not parse get user timeline request: ", err)
 		return err
 	}
 
 	resp, err = client.SendRequest(req)
 	if err != nil {
-		fmt.Printf("Could not send get user timeline request: %v\n", err)
+		fmt.Println("Could not send get user timeline request: ", err)
 		return err
 	}
 
 	var tweets []twittergo.Tweet
 	err = resp.Parse(&tweets)
 	if err != nil {
-		fmt.Printf("Problem parsing response: %v\n", err)
+		fmt.Println("Problem parsing response:", err)
 		os.Exit(1)
 	}
 
@@ -205,7 +207,7 @@ func syncUser() error {
 			fmt.Println("can't find retweet field")
 			continue
 		}
-		if rt.(bool) == true {
+		if rt.(bool) {
 			fmt.Println(tweet.Id(), "already retweeted")
 			continue
 		}
