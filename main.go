@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -114,16 +115,17 @@ func Authorize(force_auth bool) {
 			Signer:       new(oauth1a.HmacSha1Signer),
 		}
 
+		ctx := context.Background()
 		httpClient := new(http.Client)
 		userConfig := &oauth1a.UserConfig{}
-		userConfig.GetRequestToken(service, httpClient)
+		userConfig.GetRequestToken(ctx, service, httpClient)
 		u, _ := userConfig.GetAuthorizeURL(service)
 		fmt.Println("use a web browser to open", u)
 		token, _ := userConfig.GetToken()
 		var verifier string
 		fmt.Printf("input PIN code: ")
 		fmt.Scanf("%s", &verifier)
-		if err := userConfig.GetAccessToken(token, verifier, service, httpClient); err != nil {
+		if err := userConfig.GetAccessToken(ctx, token, verifier, service, httpClient); err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
