@@ -89,6 +89,66 @@ func retweet(id uint64) error {
 	return nil
 }
 
+func deleteTweet(id uint64) error {
+	req, err = http.NewRequest("POST", fmt.Sprintf("/1.1/statuses/destroy/%d.json", id), nil)
+	if err != nil {
+		fmt.Println("Could not parse delete status request: ", err)
+		return err
+	}
+
+	resp, err = client.SendRequest(req)
+	if err != nil {
+		fmt.Println("Could not send delete status request: ", err)
+		return err
+	}
+
+	b, err := ReadBody(resp)
+	if err != nil {
+		fmt.Println("Deleting status failed: ", err, string(b))
+		return err
+	}
+
+	return nil
+}
+
+func searchReplies(fromId uint64) bool {
+	query := url.Values{}
+	query.Set("q", "to:"+user.ScreenName())
+	query.Set("since_id", strconv.FormatUint(fromId, 10))
+	query.Set("result_type", "recent")
+	query.Set("count", "200")
+
+	req, err = http.NewRequest("GET", fmt.Sprintf("/1.1/search/tweets.json?%v", query.Encode()), nil)
+	if err != nil {
+		fmt.Println("Could not parse search request: ", err)
+		return false
+	}
+
+	resp, err = client.SendRequest(req)
+	if err != nil {
+		fmt.Println("Could not send search request: ", err)
+		return false
+	}
+
+	var searchResult struct {
+		Statuses []twittergo.Tweet `json:"statuses"`
+	}
+	err = resp.Parse(&searchResult)
+	if err != nil {
+		fmt.Println("Problem parsing response: ", err)
+		return false
+	}
+
+	// filter out tweets that are replies to other tweets
+	fromIdStr := strconv.FormatUint(fromId, 10)
+	for _, tweet := range searchResult.Statuses {
+		if id, ok := tweet["in_reply_to_status_id_str"].(string); ok && id == fromIdStr {
+			return true
+		}
+	}
+	return false
+}
+
 func unretweetAll(all bool) error {
 	var maxID uint64
 	query := url.Values{}
@@ -97,6 +157,7 @@ func unretweetAll(all bool) error {
 		query.Set("user_id", fmt.Sprint(user.Id()))
 		query.Set("count", "200")
 		query.Set("tweet_mode", "extended")
+		query.Set("include_entities", "true")
 		if maxID > 0 {
 			query.Set("max_id", fmt.Sprint(maxID))
 		}
@@ -112,6 +173,9 @@ func unretweetAll(all bool) error {
 			return err
 		}
 
+		// content, err := ioutil.ReadAll(resp.Body)
+		// fmt.Println(string(content))
+
 		var tweets []twittergo.Tweet
 		err = resp.Parse(&tweets)
 		if err != nil {
@@ -120,11 +184,42 @@ func unretweetAll(all bool) error {
 		}
 
 		fmt.Println("find tweets count:", len(tweets))
-		for i, tweet := range tweets {
-			fmt.Println(tweet.Id(), "tweet", i, tweet.FullText())
+		for _, tweet := range tweets {
+			//fmt.Println(tweet.Id(), "tweet", i, tweet.FullText())
+			c, ok := tweet["created_at"]
+			if !ok {
+				//fmt.Println(tweet.Id(), "can't extract tweet created at")
+				continue
+			}
+			createdAt, err := time.Parse(time.RubyDate, c.(string))
+			if err != nil {
+				//fmt.Println(tweet.Id(), "can't parse tweet created at")
+				continue
+			}
+			if !createdAt.Add(24 * time.Hour).Before(time.Now()) {
+				//fmt.Println(tweet.Id(), "tweet is posted in 24 hours", tweet.FullText())
+				continue
+			}
+
+			if _, ok := tweet["in_reply_to_status_id_str"].(string); ok {
+				//fmt.Println(tweet.Id(), "tweet is replied to other status", replyId, tweet.FullText())
+				if rc, ok := tweet["retweet_count"].(uint64); ok && rc > 0 {
+					//fmt.Println(tweet.Id(), "tweet is retweeted", tweet.FullText())
+					continue
+				}
+				if fc, ok := tweet["favorite_count"].(uint64); ok && fc > 0 {
+					//fmt.Println(tweet.Id(), "tweet is favorited", tweet.FullText())
+					continue
+				}
+				if !searchReplies(tweet.Id()) {
+					fmt.Println(tweet.Id(), "tweet is 0rt/0rp/0fav, should be deleted", tweet.FullText())
+					// deleteTweet(tweet.Id())
+				}
+			}
+
 			rs, ok := tweet["retweeted_status"]
 			if !ok {
-				fmt.Println("can't find retweeted_status field")
+				//fmt.Println("can't find retweeted_status field")
 				continue
 			}
 			fmt.Println(tweet.Id(), "find retweeted_status field")
@@ -133,12 +228,12 @@ func unretweetAll(all bool) error {
 				fmt.Println(tweet.Id(), "can't convert retweeted_status")
 				continue
 			}
-			c, ok := t["created_at"]
+			c, ok = t["created_at"]
 			if !ok {
 				fmt.Println(tweet.Id(), "can't extract retweeted_status created at")
 				continue
 			}
-			createdAt, err := time.Parse(time.RubyDate, c.(string))
+			createdAt, err = time.Parse(time.RubyDate, c.(string))
 			if err != nil {
 				fmt.Println(tweet.Id(), "can't parse retweeted_status created at")
 				continue
